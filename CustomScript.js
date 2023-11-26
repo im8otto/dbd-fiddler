@@ -218,6 +218,7 @@ class Handlers
 					request.Headers.Add(headerJson[i]["name"], headerJson[i]["value"]);
 				}
 				var responseBody = request.UploadString(url, "POST", requestBody);
+				System.IO.File.Delete(questPath);
             }
             catch(e){
                 FiddlerObject.log(e);
@@ -441,7 +442,10 @@ class Handlers
                 var jsonResponse = oSession.GetResponseBodyAsString();
                 var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse);
                 //GETTING VARIABLES FROM SELECTED CHALLENGE
-                if(oJsonResponse.JSONObject["activeNodesFull"].Count == 0) return;
+            	if(oJsonResponse.JSONObject["activeNodesFull"].Count == 0){
+                    if(System.IO.File.Exists(MarketUpdaterPath+"Quest.json")) System.IO.File.Delete(MarketUpdaterPath+"Quest.json");
+                    return;
+                }
                 var role = oJsonRequest.JSONObject["role"];
                 if(role == "both") role = "survivor";
                 var neededProgression = oJsonResponse.JSONObject["activeNodesFull"][0]["objectives"][0]["neededProgression"];
