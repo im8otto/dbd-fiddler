@@ -1,12 +1,13 @@
 import System;
 import System.Windows.Forms;
 import Fiddler;
-var Bloodweb_v6 = true;		//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
-var CustomPrestige = true;	//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
-var Market_v3 = true;		//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
+var Bloodweb_v6 = true;			//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
+var CustomPrestige = true;		//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
+var Market_v3 = true;			//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
 var Quest = true;			//CHANGE true TO false TO DISABLE CHALLANGES HELPER
 var MarketUpdaterPath = "C:\\Rules\\";	//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
-var QuestBlock = false;		//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
+var QuestBlock = false;			//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
+var Banner = true;			//CHANGE true TO false TO USE BANNERS UNLOCKED WITH MARKET
 
 // INTRODUCTION
 //
@@ -34,7 +35,7 @@ var QuestBlock = false;		//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Use
 //
 // FiddlerScript Reference
 // http://fiddler2.com/r/?fiddlerscriptcookbook
-
+if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";
 class Handlers
 {
     // *****************
@@ -166,7 +167,7 @@ class Handlers
         //     oSession.oFlags["x-breakrequest"] = "yup";	// Existence of the x-breakrequest flag creates a breakpoint; the "yup" value is unimportant.
         // }
 
-		if(QuestBlock && oSession.uriContains("/api/v1/archives/stories/update/quest-progress-v3")){
+	if(QuestBlock && oSession.uriContains("/api/v1/archives/stories/update/quest-progress-v3")){
             try{
                 oSession.utilDecodeRequest();
                 var jsonRequest = oSession.GetRequestBodyAsString();
@@ -186,39 +187,39 @@ class Handlers
                 oSession.utilDecodeRequest();
                 var jsonString = oSession.GetRequestBodyAsString();
                 var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString);
-				var matchId = "";
-				var krakenMatchId = "";
-				var check = false;
-				for(var i=0;i<oJson.JSONObject["events"].Count;i++){
-					if(oJson.JSONObject["events"][i]["eventType"] == "postgame_survivor" || oJson.JSONObject["events"][i]["eventType"] == "postgame_killer"){
-						matchId = oJson.JSONObject["events"][i]["data"]["match_id"];
-						krakenMatchId = oJson.JSONObject["events"][i]["data"]["kraken_match_id"];
-						check = true;
-						break;
-					}
+			var matchId = "";
+			var krakenMatchId = "";
+			var check = false;
+			for(var i=0;i<oJson.JSONObject["events"].Count;i++){
+				if(oJson.JSONObject["events"][i]["eventType"] == "postgame_survivor" || oJson.JSONObject["events"][i]["eventType"] == "postgame_killer"){
+					matchId = oJson.JSONObject["events"][i]["data"]["match_id"];
+					krakenMatchId = oJson.JSONObject["events"][i]["data"]["kraken_match_id"];
+					check = true;
+					break;
 				}
-				if (!check) return;
-				if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";
-                var questPath = MarketUpdaterPath + "Quest.json";
-				var headersPath = MarketUpdaterPath + "Headers.json";
-                if (!System.IO.File.Exists(questPath) || !System.IO.File.Exists(headersPath)) return;
-				var headerString = System.IO.File.ReadAllText(headersPath);
-				var headerJson = Fiddler.WebFormats.JSON.JsonDecode(headerString).JSONObject;
-                var questString = System.IO.File.ReadAllText(questPath);
-                var questJson = Fiddler.WebFormats.JSON.JsonDecode(questString);
-				questJson.JSONObject["matchId"] = matchId;
-				questJson.JSONObject["krakenMatchId"] = krakenMatchId;
-				var requestBody = Fiddler.WebFormats.JSON.JsonEncode(questJson.JSONObject);
-                var request = new System.Net.WebClient();
-				var currentUrl = new System.Uri(oSession.fullUrl);
-				var baseUrl = currentUrl.GetLeftPart(System.UriPartial.Authority);
-				var url = baseUrl+"/api/v1/archives/stories/update/quest-progress-v3";
-				//request.Headers.Set("X-HTTP-Method-Override", "POST"); //REMOVE COMMENT IF YOU HAVE PROBLEMS
-				for(var i=0;i<headerJson.Count;i++){
-					request.Headers.Add(headerJson[i]["name"], headerJson[i]["value"]);
-				}
-				var responseBody = request.UploadString(url, "POST", requestBody);
-				System.IO.File.Delete(questPath);
+			}
+			if (!check) return;
+			if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";
+			var questPath = MarketUpdaterPath + "Quest.json";
+			var headersPath = MarketUpdaterPath + "Headers.json";
+			if (!System.IO.File.Exists(questPath) || !System.IO.File.Exists(headersPath)) return;
+			var headerString = System.IO.File.ReadAllText(headersPath);
+			var headerJson = Fiddler.WebFormats.JSON.JsonDecode(headerString).JSONObject;
+			var questString = System.IO.File.ReadAllText(questPath);
+			var questJson = Fiddler.WebFormats.JSON.JsonDecode(questString);
+			questJson.JSONObject["matchId"] = matchId;
+			questJson.JSONObject["krakenMatchId"] = krakenMatchId;
+			var requestBody = Fiddler.WebFormats.JSON.JsonEncode(questJson.JSONObject);
+			var request = new System.Net.WebClient();
+			var currentUrl = new System.Uri(oSession.fullUrl);
+			var baseUrl = currentUrl.GetLeftPart(System.UriPartial.Authority);
+			var url = baseUrl+"/api/v1/archives/stories/update/quest-progress-v3";
+			//request.Headers.Set("X-HTTP-Method-Override", "POST"); //REMOVE COMMENT IF YOU HAVE PROBLEMS
+			for(var i=0;i<headerJson.Count;i++){
+				request.Headers.Add(headerJson[i]["name"], headerJson[i]["value"]);
+			}
+			var responseBody = request.UploadString(url, "POST", requestBody);
+			System.IO.File.Delete(questPath);
             }
             catch(e){
                 FiddlerObject.log(e);
@@ -326,10 +327,7 @@ class Handlers
         if ((null!=bpResponseURI) && oSession.uriContains(bpResponseURI)) {
             oSession["x-breakresponse"]="uri";
             oSession.bBufferResponse = true;
-        }
-		
-		//Aggiungere controllo
-		
+        }		
     }
 
     static function OnBeforeResponse(oSession: Session) {
@@ -337,7 +335,7 @@ class Handlers
             oSession["ui-hide"] = "true";
         }
         
-		//BLOODWEB AND GETALL, IT NEEDS Bloodweb_v6 and MarketUpdaterPath as global variables (at top of code)
+	//BLOODWEB AND GETALL, IT NEEDS Bloodweb_v6 and MarketUpdaterPath as global variables (at top of code)
         if(Bloodweb_v6 && (oSession.uriContains("api/v1/dbd-character-data/bloodweb") || oSession.uriContains("api/v1/dbd-character-data/get-all"))){
             try{
                 if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";
@@ -462,7 +460,6 @@ class Handlers
                 }
                 requestBody += '],"role":"'+role+'"}';
                 //GENERATING QUEST FILE
-				if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";
                 System.IO.File.WriteAllText(MarketUpdaterPath+"Quest.json", requestBody);
             }
             catch(e){FiddlerObject.log("Error unlocking challenge");}
@@ -488,6 +485,31 @@ class Handlers
                 FiddlerObject.log(e);
             }
         }
+
+	if (Banner && oSession.uriContains("/api/v1/dbd-player-card/set")) {
+		try {
+			oSession.utilDecodeRequest();
+			var requestBody = oSession.GetRequestBodyAsString();
+			oSession.responseCode = 200;
+			oSession.utilSetResponseBody(requestBody);
+			System.IO.File.WriteAllText(MarketUpdaterPath + "Banner.json", requestBody);
+		} catch (e) {
+			FiddlerObject.log(e);
+		}
+	}
+	
+	if (Banner && oSession.uriContains("/api/v1/dbd-player-card/get")) {
+		try {
+			
+			var bannerPath = MarketUpdaterPath + "Banner.json";
+			if (!System.IO.File.Exists(bannerPath)) return;
+			oSession.responseCode = 200;
+			oSession.utilSetResponseBody(System.IO.File.ReadAllText(bannerPath));
+		}
+		catch (e) {
+			FiddlerObject.log(e);
+		}
+	}
     }
 
 /*
