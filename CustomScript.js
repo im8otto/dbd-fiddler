@@ -213,14 +213,14 @@ class Handlers
 				questJson.JSONObject["krakenMatchId"] = krakenMatchId;
 				var requestBody = Fiddler.WebFormats.JSON.JsonEncode(questJson.JSONObject);
 				var request = new System.Net.WebClient();
-				var currentUrl = new System.Uri(oSession.fullUrl);
-				var baseUrl = currentUrl.GetLeftPart(System.UriPartial.Authority);
-				var url = baseUrl+"/api/v1/archives/stories/update/quest-progress-v3";
+				var baseUrl = "";
 				for(var i=0;i<headerJson.Count;i++){
 					request.Headers.Add(headerJson[i]["name"], headerJson[i]["value"]);
+					if (headerJson[i]["name"] == "Host") baseUrl = "https://" + headerJson[i]["value"];
 				}
-				var responseBody = request.UploadString(url, "POST", requestBody);
+				var url = baseUrl+"/api/v1/archives/stories/update/quest-progress-v3";
 				System.IO.File.Delete(questPath);
+				var responseBody = request.UploadString(url, "POST", requestBody);
 			}
 			catch(e){
 				FiddlerObject.log(e);
