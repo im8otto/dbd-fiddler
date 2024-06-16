@@ -84,22 +84,57 @@ class Handlers
 		Utilities.LaunchHyperlink(sAction);
 	}
 	*/
-
+	
+	static function OnBoot(){
+		FiddlerObject.UI.RegisterCustomHotkey(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x4C, "levelup");  //CTRL + SHIFT + L to level up free
+	}
+	static var FreeLevelUp = true;
+	static var CurrentCharacter = null;
+	static var CurrentLevel = 0;
+	static var MaxLevelCount = 5;
+	static function CharLevelUp() {
+		try{
+			FiddlerObject.log("Function CharLevelUp started!");
+			for(var levelCount=0;levelCount<MaxLevelCount;levelCount++){
+				if (!FreeLevelUp || CurrentCharacter == null || CurrentCharacter == "null") return;
+				var headersPath = MarketUpdaterPath + "Headers.json";
+				if (!System.IO.File.Exists(headersPath)) return;
+				var headerString = System.IO.File.ReadAllText(headersPath);
+				var headerJson = Fiddler.WebFormats.JSON.JsonDecode(headerString).JSONObject;
+				var requestBody = "";
+				if(CurrentLevel == 51){ requestBody = '{"characterName":"' + CurrentCharacter + '", "selectedNodeIds":["0"], "entityBlockedNodeIds":[]}'; }	
+				else { requestBody = '{"characterName":"' + CurrentCharacter + '", "selectedNodeIds":[], "entityBlockedNodeIds":["0"]}'; }
+				var request = new System.Net.WebClient();
+				var baseUrl = "";
+				for(var i=0;i<headerJson.Count;i++){
+					request.Headers.Add(headerJson[i]["name"], headerJson[i]["value"]);
+					if (headerJson[i]["name"] == "Host") baseUrl = "https://" + headerJson[i]["value"];
+				}
+				var url = baseUrl+"/api/v1/dbd-character-data/bloodweb";
+				request.UploadString(url, "POST", requestBody);
+			}
+			FiddlerObject.log("Function CharLevelUp ended successfully!");
+		}
+		catch(e){
+			FiddlerObject.log(e);
+		}
+	}
+		
 	public static RulesOption("Hide 304s")
 	BindPref("fiddlerscript.rules.Hide304s")
 	var m_Hide304s: boolean = false;
 
-	// Cause Fiddler Classic to override the Accept-Language header with one of the defined values
+		// Cause Fiddler Classic to override the Accept-Language header with one of the defined values
 	public static RulesOption("Request &Japanese Content")
 	var m_Japanese: boolean = false;
 
-	// Automatic Authentication
+		// Automatic Authentication
 	public static RulesOption("&Automatically Authenticate")
 	BindPref("fiddlerscript.rules.AutoAuth")
 	var m_AutoAuth: boolean = false;
 
-	// Cause Fiddler Classic to override the User-Agent header with one of the defined values
-	// The page http://browserscope2.org/browse?category=selectors&ua=Mobile%20Safari is a good place to find updated versions of these
+		// Cause Fiddler Classic to override the User-Agent header with one of the defined values
+		// The page http://browserscope2.org/browse?category=selectors&ua=Mobile%20Safari is a good place to find updated versions of these
 	RulesString("&User-Agents", true) 
 	BindPref("fiddlerscript.ephemeral.UserAgentString")
 	RulesStringValue(0,"Netscape &3", "Mozilla/3.0 (Win95; I)")
@@ -130,19 +165,19 @@ class Handlers
 	RulesStringValue(25,"&Custom...", "%CUSTOM%")
 	public static var sUA: String = null;
 
-	// Cause Fiddler Classic to delay HTTP traffic to simulate typical 56k modem conditions
+		// Cause Fiddler Classic to delay HTTP traffic to simulate typical 56k modem conditions
 	public static RulesOption("Simulate &Modem Speeds", "Per&formance")
 	var m_SimulateModem: boolean = false;
 
-	// Removes HTTP-caching related headers and specifies "no-cache" on requests and responses
+		// Removes HTTP-caching related headers and specifies "no-cache" on requests and responses
 	public static RulesOption("&Disable Caching", "Per&formance")
 	var m_DisableCaching: boolean = false;
 
 	public static RulesOption("Cache Always &Fresh", "Per&formance")
 	var m_AlwaysFresh: boolean = false;
-	
-	// Force a manual reload of the script file.  Resets all
-	// RulesOption variables to their defaults.
+		
+		// Force a manual reload of the script file.  Resets all
+		// RulesOption variables to their defaults.
 	public static ToolsAction("Reset Script")
 	function DoManualReload() { 
 		FiddlerObject.ReloadScript();
@@ -173,45 +208,45 @@ class Handlers
 			try{
 				oSession.utilDecodeRequest();
 				var jsonRequest = oSession.GetRequestBodyAsString();
-				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest);
-				for(var i=0;i<oJsonRequest.JSONObject["questEvents"].Count;i++){
-					oJsonRequest.JSONObject["questEvents"][i]["repetition"] = 0;
+				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest).JSONObject;
+				for(var i=0;i<oJsonRequest["questEvents"].Count;i++){
+					oJsonRequest["questEvents"][i]["repetition"] = 0;
 				}
-				oSession.utilSetRequestBody(Fiddler.WebFormats.JSON.JsonEncode(oJsonRequest.JSONObject));
+				oSession.utilSetRequestBody(Fiddler.WebFormats.JSON.JsonEncode(oJsonRequest));
 			}
 			catch(e){
 				FiddlerObject.log(e);
 			}
 		}
-		
+			
 		if (!QuestBlock && Quest && oSession.uriContains("api/v1/gameDataAnalytics/v2/batch")){
 			try{
 				oSession.utilDecodeRequest();
 				var jsonString = oSession.GetRequestBodyAsString();
-				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString);
+				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
 				var matchId = "";
 				var krakenMatchId = "";
 				var check = false;
-				for(var i=0;i<oJson.JSONObject["events"].Count;i++){
-					if(oJson.JSONObject["events"][i]["eventType"] == "postgame_survivor" || oJson.JSONObject["events"][i]["eventType"] == "postgame_killer"){
-						matchId = oJson.JSONObject["events"][i]["data"]["match_id"];
-						krakenMatchId = oJson.JSONObject["events"][i]["data"]["kraken_match_id"];
+				for(var i=0;i<oJson["events"].Count;i++){
+					if(oJson["events"][i]["eventType"] == "postgame_survivor" || oJson["events"][i]["eventType"] == "postgame_killer"){
+						matchId = oJson["events"][i]["data"]["match_id"];
+						krakenMatchId = oJson["events"][i]["data"]["kraken_match_id"];
 						check = true;
 						break;
 					}
 				}
 				if (!check) return;
-				
+					
 				var questPath = MarketUpdaterPath + "Quest.json";
 				var headersPath = MarketUpdaterPath + "Headers.json";
 				if (!System.IO.File.Exists(questPath) || !System.IO.File.Exists(headersPath)) return;
 				var headerString = System.IO.File.ReadAllText(headersPath);
 				var headerJson = Fiddler.WebFormats.JSON.JsonDecode(headerString).JSONObject;
 				var questString = System.IO.File.ReadAllText(questPath);
-				var questJson = Fiddler.WebFormats.JSON.JsonDecode(questString);
-				questJson.JSONObject["matchId"] = matchId;
-				questJson.JSONObject["krakenMatchId"] = krakenMatchId;
-				var requestBody = Fiddler.WebFormats.JSON.JsonEncode(questJson.JSONObject);
+				var questJson = Fiddler.WebFormats.JSON.JsonDecode(questString).JSONObject;
+				questJson["matchId"] = matchId;
+				questJson["krakenMatchId"] = krakenMatchId;
+				var requestBody = Fiddler.WebFormats.JSON.JsonEncode(questJson);
 				var request = new System.Net.WebClient();
 				var baseUrl = "";
 				for(var i=0;i<headerJson.Count;i++){
@@ -219,7 +254,7 @@ class Handlers
 					if (headerJson[i]["name"] == "Host") baseUrl = "https://" + headerJson[i]["value"];
 				}
 				var url = baseUrl+"/api/v1/archives/stories/update/quest-progress-v3";
-				System.IO.File.Delete(questPath);
+				//System.IO.File.Delete(questPath);
 				var responseBody = request.UploadString(url, "POST", requestBody);
 			}
 			catch(e){
@@ -286,33 +321,33 @@ class Handlers
 		}
 	}
 
-	// This function is called immediately after a set of request headers has
-	// been read from the client. This is typically too early to do much useful
-	// work, since the body hasn't yet been read, but sometimes it may be useful.
-	//
-	// For instance, see 
-	// http://blogs.msdn.com/b/fiddler/archive/2011/11/05/http-expect-continue-delays-transmitting-post-bodies-by-up-to-350-milliseconds.aspx
-	// for one useful thing you can do with this handler.
-	//
-	// Note: oSession.requestBodyBytes is not available within this function!
-	/*
-	static function OnPeekAtRequestHeaders(oSession: Session) {
-		var sProc = ("" + oSession["x-ProcessInfo"]).ToLower();
-		if (!sProc.StartsWith("mylowercaseappname")) oSession["ui-hide"] = "NotMyApp";
-	}
-*/
+		// This function is called immediately after a set of request headers has
+		// been read from the client. This is typically too early to do much useful
+		// work, since the body hasn't yet been read, but sometimes it may be useful.
+		//
+		// For instance, see 
+		// http://blogs.msdn.com/b/fiddler/archive/2011/11/05/http-expect-continue-delays-transmitting-post-bodies-by-up-to-350-milliseconds.aspx
+		// for one useful thing you can do with this handler.
+		//
+		// Note: oSession.requestBodyBytes is not available within this function!
+		/*
+		static function OnPeekAtRequestHeaders(oSession: Session) {
+			var sProc = ("" + oSession["x-ProcessInfo"]).ToLower();
+			if (!sProc.StartsWith("mylowercaseappname")) oSession["ui-hide"] = "NotMyApp";
+		}
+	*/
 
-	//
-	// If a given session has response streaming enabled, then the OnBeforeResponse function 
-	// is actually called AFTER the response was returned to the client.
-	//
-	// In contrast, this OnPeekAtResponseHeaders function is called before the response headers are 
-	// sent to the client (and before the body is read from the server).  Hence this is an opportune time 
-	// to disable streaming (oSession.bBufferResponse = true) if there is something in the response headers 
-	// which suggests that tampering with the response body is necessary.
-	// 
-	// Note: oSession.responseBodyBytes is not available within this function!
-	//
+		//
+		// If a given session has response streaming enabled, then the OnBeforeResponse function 
+		// is actually called AFTER the response was returned to the client.
+		//
+		// In contrast, this OnPeekAtResponseHeaders function is called before the response headers are 
+		// sent to the client (and before the body is read from the server).  Hence this is an opportune time 
+		// to disable streaming (oSession.bBufferResponse = true) if there is something in the response headers 
+		// which suggests that tampering with the response body is necessary.
+		// 
+		// Note: oSession.responseBodyBytes is not available within this function!
+		//
 	static function OnPeekAtResponseHeaders(oSession: Session) {
 		//FiddlerApplication.Log.LogFormat("Session {0}: Response header peek shows status is {1}", oSession.id, oSession.responseCode);
 		if (m_DisableCaching) {
@@ -324,7 +359,7 @@ class Handlers
 			oSession["x-breakresponse"]="status";
 			oSession.bBufferResponse = true;
 		}
-		
+			
 		if ((null!=bpResponseURI) && oSession.uriContains(bpResponseURI)) {
 			oSession["x-breakresponse"]="uri";
 			oSession.bBufferResponse = true;
@@ -336,7 +371,22 @@ class Handlers
 		if (m_Hide304s && oSession.responseCode == 304) {
 			oSession["ui-hide"] = "true";
 		}
-		
+			
+		if(FreeLevelUp && oSession.uriContains("api/v1/dbd-character-data/bloodweb")){
+			try{
+				oSession.utilDecodeRequest();
+				oSession.utilDecodeResponse();
+				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(oSession.GetRequestBodyAsString()).JSONObject;
+				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(oSession.GetResponseBodyAsString()).JSONObject;
+				CurrentCharacter = oJsonRequest["characterName"];
+				CurrentLevel = oJsonResponse["bloodWebLevel"];
+				FiddlerObject.log("Selected character: " + CurrentCharacter + ", Character level: " + CurrentLevel);
+			}
+			catch(e){
+				FiddlerObject.log(e);
+			}
+		}
+			
 		if(BloodwebNoPerks && oSession.uriContains("api/v1/dbd-character-data/bloodweb")){
 			try{
 				var bloodwebPath = MarketUpdaterPath + "Files\\BloodwebNoPerks.json";
@@ -345,7 +395,7 @@ class Handlers
 				var bloodwebJson = Fiddler.WebFormats.JSON.JsonDecode(bloodwebString).JSONObject;
 				oSession.utilDecodeResponse();
 				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(oSession.GetResponseBodyAsString()).JSONObject;
-				oJsonResponse["characterItems"].AddRange(bloodwebJson["characterItems"]);
+				oJsonResponse["characterItems"].AddRange(bloodwebJson["CharacterItems"]);
 				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJsonResponse);
 				oSession.utilSetResponseBody(oString);
 			}
@@ -353,7 +403,7 @@ class Handlers
 				FiddlerObject.log(e);
 			}
 		}
-		
+			
 		if(Bloodweb_v6 && (oSession.uriContains("api/v1/dbd-character-data/bloodweb") || oSession.uriContains("api/v1/dbd-character-data/get-all"))){
 			try{
 				var getallPath = MarketUpdaterPath + "Files\\GetAll.json";
@@ -361,7 +411,7 @@ class Handlers
 				var customDataPath = MarketUpdaterPath + "Other\\CustomCharacterData.json";
 				var customStatus = CustomPrestige && System.IO.File.Exists(customDataPath);
 				var getallString = System.IO.File.ReadAllText(getallPath);
-				var getallJson = Fiddler.WebFormats.JSON.JsonDecode(getallString);
+				var getallJson = Fiddler.WebFormats.JSON.JsonDecode(getallString).JSONObject;
 				var bloodWebData = new System.Collections.Hashtable();
 				var paths = new System.Collections.ArrayList();
 				var ringData = new System.Collections.ArrayList();
@@ -377,18 +427,18 @@ class Handlers
 				bloodWebData.Add("ringData", ringData);
 				if (customStatus) {
 					var customDataString = System.IO.File.ReadAllText(customDataPath);
-					var customDataJson = Fiddler.WebFormats.JSON.JsonDecode(customDataString);
+					var customDataJson = Fiddler.WebFormats.JSON.JsonDecode(customDataString).JSONObject;
 				}
 				if (oSession.uriContains("api/v1/dbd-character-data/get-all")){
 					if (customStatus){
-						for(var i=0;i<getallJson.JSONObject["list"].Count;i++){
-							getallJson.JSONObject["list"][i]["bloodWebData"].Clear();
-							getallJson.JSONObject["list"][i]["bloodWebData"] = bloodWebData;
+						for(var i=0;i<getallJson["List"].Count;i++){
+							getallJson["List"][i]["BloodWebData"].Clear();
+							getallJson["List"][i]["BloodWebData"] = bloodWebData;
 							var j = 0;
-							while(j<customDataJson.JSONObject["list"].Count && customDataJson.JSONObject["list"][j]["characterName"].ToLower() != getallJson.JSONObject["list"][i]["characterName"].ToLower()) j++;
-							if (customDataJson.JSONObject["list"][j]["characterName"].ToLower() == getallJson.JSONObject["list"][i]["characterName"].ToLower()) getallJson.JSONObject["list"][i]["prestigeLevel"] = customDataJson.JSONObject["list"][j]["prestigeLevel"];
+							while(j<customDataJson["List"].Count && customDataJson["List"][j]["CharacterName"].ToLower() != getallJson["List"][i]["CharacterName"].ToLower()) j++;
+							if (customDataJson["List"][j]["CharacterName"].ToLower() == getallJson["List"][i]["CharacterName"].ToLower()) getallJson["List"][i]["PrestigeLevel"] = customDataJson["List"][j]["PrestigeLevel"];
 						}
-						getallString = Fiddler.WebFormats.JSON.JsonEncode(getallJson.JSONObject);
+						getallString = Fiddler.WebFormats.JSON.JsonEncode(getallJson);
 					}
 					oSession.utilSetResponseBody(getallString);
 					return;
@@ -396,27 +446,27 @@ class Handlers
 				oSession.utilDecodeRequest();
 				oSession.utilDecodeResponse();
 				var jsonRequest = oSession.GetRequestBodyAsString();
-				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest);
+				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest).JSONObject;
 				var jsonResponse = oSession.GetResponseBodyAsString();
-				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse);
-				var characterSelected = oJsonRequest.JSONObject["characterName"];
-				for(var i=0;i<getallJson.JSONObject["list"].Count;i++){
-					if(getallJson.JSONObject["list"][i]["characterName"].ToLower() == characterSelected.ToLower()){
-						oJsonResponse.JSONObject["bloodWebLevel"] = 50;
-						oJsonResponse.JSONObject["prestigeLevel"] = getallJson.JSONObject["list"][i]["prestigeLevel"];
-						oJsonResponse.JSONObject["legacyPrestigeLevel"] = getallJson.JSONObject["list"][i]["legacyPrestigeLevel"];
+				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse).JSONObject;
+				var characterSelected = oJsonRequest["characterName"];
+				for(var i=0;i<getallJson["List"].Count;i++){
+					if(getallJson["List"][i]["CharacterName"].ToLower() == characterSelected.ToLower()){
+						oJsonResponse["bloodWebLevel"] = 50;
+						oJsonResponse["prestigeLevel"] = getallJson["List"][i]["PrestigeLevel"];
+						oJsonResponse["legacyPrestigeLevel"] = getallJson["List"][i]["LegacyPrestigeLevel"];
 						if (customStatus){
 							var j = 0;
-							while(j<customDataJson.JSONObject["list"].Count && customDataJson.JSONObject["list"][j]["characterName"].ToLower() != characterSelected.ToLower()) j++;
-							if (customDataJson.JSONObject["list"][j]["characterName"].ToLower() == characterSelected.ToLower()) oJsonResponse.JSONObject["prestigeLevel"] = customDataJson.JSONObject["list"][j]["prestigeLevel"];
+							while(j<customDataJson["List"].Count && customDataJson["List"][j]["CharacterName"].ToLower() != characterSelected.ToLower()) j++;
+							if (customDataJson["List"][j]["CharacterName"].ToLower() == characterSelected.ToLower()) oJsonResponse["prestigeLevel"] = customDataJson["List"][j]["PrestigeLevel"];
 						}
-						oJsonResponse.JSONObject["characterItems"].AddRange(getallJson.JSONObject["list"][i]["characterItems"]);
+						oJsonResponse["characterItems"].AddRange(getallJson["List"][i]["CharacterItems"]);
 						break;
 					}
 				}
-				oJsonResponse.JSONObject["bloodWebData"].Clear();
-				oJsonResponse.JSONObject["bloodWebData"] = bloodWebData;
-				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJsonResponse.JSONObject);
+				oJsonResponse["bloodWebData"].Clear();
+				oJsonResponse["bloodWebData"] = bloodWebData;
+				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJsonResponse);
 				oSession.utilSetResponseBody(oString);
 			}
 			catch(e){
@@ -426,41 +476,41 @@ class Handlers
 
 		if (Market_v3 && oSession.uriContains("api/v1/inventories")) {
 			try{
-				
+					
 				var marketPath = MarketUpdaterPath + "Files\\MarketNoSavefile.json";
 				if (!System.IO.File.Exists(marketPath)) return;
 				var marketString = System.IO.File.ReadAllText(marketPath);
-				var marketJson = Fiddler.WebFormats.JSON.JsonDecode(marketString);
+				var marketJson = Fiddler.WebFormats.JSON.JsonDecode(marketString).JSONObject;
 				oSession.utilDecodeResponse();
 				var jsonString = oSession.GetResponseBodyAsString();
-				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString);
-				for(var i = 0; i < marketJson.JSONObject["data"]["inventory"].Count ; i++){
-					oJson.JSONObject["data"]["inventory"].Add(marketJson.JSONObject["data"]["inventory"][i]);
+				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
+				for(var i = 0; i < marketJson["Data"]["Inventory"].Count ; i++){
+					oJson["data"]["inventory"].Add(marketJson["Data"]["Inventory"][i]);
 				}
-				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJson.JSONObject);
+				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJson);
 				oSession.utilSetResponseBody(oString);
 			}
 			catch(e){
 				FiddlerObject.log(e);
 			}
 		}
-		
+			
 		if (!QuestBlock && Quest && oSession.uriContains("api/v1/archives/stories/update/active-node-v3")){
 			try{
 				oSession.utilDecodeRequest();
 				oSession.utilDecodeResponse();
 				var jsonRequest = oSession.GetRequestBodyAsString();
-				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest);
+				var oJsonRequest = Fiddler.WebFormats.JSON.JsonDecode(jsonRequest).JSONObject;
 				var jsonResponse = oSession.GetResponseBodyAsString();
-				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse);
-				if(oJsonResponse.JSONObject["activeNodesFull"].Count == 0){
+				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse).JSONObject;
+				if(oJsonResponse["activeNodesFull"].Count == 0){
 					if(System.IO.File.Exists(MarketUpdaterPath+"Quest.json")) System.IO.File.Delete(MarketUpdaterPath+"Quest.json");
 					return;
 				}
-				var role = oJsonRequest.JSONObject["role"];
+				var role = oJsonRequest["role"];
 				if(role == "both") role = "survivor";
-				var neededProgression = oJsonResponse.JSONObject["activeNodesFull"][0]["objectives"][0]["neededProgression"];
-				var questEvents = oJsonResponse.JSONObject["activeNodesFull"][0]["objectives"][0]["questEvent"];
+				var neededProgression = oJsonResponse["activeNodesFull"][0]["objectives"][0]["neededProgression"];
+				var questEvents = oJsonResponse["activeNodesFull"][0]["objectives"][0]["questEvent"];
 				var requestBody = '{"questEvents":[';
 				for(var i=0;i<questEvents.Count;i++){
 					var repetition = questEvents[i]["repetition"];
@@ -476,7 +526,7 @@ class Handlers
 			}
 			catch(e){FiddlerObject.log("Error unlocking challenge");}
 		}
-		
+			
 		if (!QuestBlock && Quest && oSession.uriContains("api/v1/auth/v2/publicKey")){
 			try{
 				oSession.utilDecodeRequest();
@@ -509,10 +559,10 @@ class Handlers
 				FiddlerObject.log(e);
 			}
 		}
-		
+			
 		if (Banner && oSession.uriContains("/api/v1/dbd-player-card/get")) {
 			try {
-				
+					
 				var bannerPath = MarketUpdaterPath + "Banner.json";
 				if (!System.IO.File.Exists(bannerPath)) return;
 				oSession.responseCode = 200;
@@ -524,60 +574,60 @@ class Handlers
 		}
 	}
 
-	/*
-	// This function executes just before Fiddler Classic returns an error that it has
-	// itself generated (e.g. "DNS Lookup failure") to the client application.
-	// These responses will not run through the OnBeforeResponse function above.
-	static function OnReturningError(oSession: Session) {
-	}
-*/
-	/*
-	// This function executes after Fiddler Classic finishes processing a Session, regardless
-	// of whether it succeeded or failed. Note that this typically runs AFTER the last
-	// update of the Web Sessions UI listitem, so you must manually refresh the Session's
-	// UI if you intend to change it.
-	static function OnDone(oSession: Session) {
-	}
-*/
-
-	/*
-	static function OnBoot() {
-		MessageBox.Show("Fiddler Classic has finished booting");
-		System.Diagnostics.Process.Start("iexplore.exe");
-
-		UI.ActivateRequestInspector("HEADERS");
-		UI.ActivateResponseInspector("HEADERS");
-	}
+		/*
+		// This function executes just before Fiddler Classic returns an error that it has
+		// itself generated (e.g. "DNS Lookup failure") to the client application.
+		// These responses will not run through the OnBeforeResponse function above.
+		static function OnReturningError(oSession: Session) {
+		}
+	*/
+		/*
+		// This function executes after Fiddler Classic finishes processing a Session, regardless
+		// of whether it succeeded or failed. Note that this typically runs AFTER the last
+		// update of the Web Sessions UI listitem, so you must manually refresh the Session's
+		// UI if you intend to change it.
+		static function OnDone(oSession: Session) {
+		}
 	*/
 
-	/*
-	static function OnBeforeShutdown(): Boolean {
-		// Return false to cancel shutdown.
-		return ((0 == FiddlerApplication.UI.lvSessions.TotalItemCount()) ||
-				(DialogResult.Yes == MessageBox.Show("Allow Fiddler Classic to exit?", "Go Bye-bye?",
-				MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)));
-	}
-	*/
+		/*
+		static function OnBoot() {
+			MessageBox.Show("Fiddler Classic has finished booting");
+			System.Diagnostics.Process.Start("iexplore.exe");
 
-	/*
-	static function OnShutdown() {
-			MessageBox.Show("Fiddler Classic has shutdown");
-	}
-	*/
+			UI.ActivateRequestInspector("HEADERS");
+			UI.ActivateResponseInspector("HEADERS");
+		}
+		*/
 
-	/*
-	static function OnAttach() {
-		MessageBox.Show("Fiddler Classic is now the system proxy");
-	}
-	*/
+		/*
+		static function OnBeforeShutdown(): Boolean {
+			// Return false to cancel shutdown.
+			return ((0 == FiddlerApplication.UI.lvSessions.TotalItemCount()) ||
+					(DialogResult.Yes == MessageBox.Show("Allow Fiddler Classic to exit?", "Go Bye-bye?",
+					MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2)));
+		}
+		*/
 
-	/*
-	static function OnDetach() {
-		MessageBox.Show("Fiddler Classic is no longer the system proxy");
-	}
-	*/
+		/*
+		static function OnShutdown() {
+				MessageBox.Show("Fiddler Classic has shutdown");
+		}
+		*/
 
-	// The Main() function runs everytime your FiddlerScript compiles
+		/*
+		static function OnAttach() {
+			MessageBox.Show("Fiddler Classic is now the system proxy");
+		}
+		*/
+
+		/*
+		static function OnDetach() {
+			MessageBox.Show("Fiddler Classic is no longer the system proxy");
+		}
+		*/
+
+		// The Main() function runs everytime your FiddlerScript compiles
 	static function Main() {
 		var today: Date = new Date();
 		FiddlerObject.StatusText = " CustomRules.js was loaded at: " + today;
@@ -589,7 +639,7 @@ class Handlers
 		// UI.RegisterCustomHotkey(HotkeyModifiers.Windows, Keys.G, "screenshot"); 
 	}
 
-	// These static variables are used for simple breakpointing & other QuickExec rules 
+		// These static variables are used for simple breakpointing & other QuickExec rules 
 	BindPref("fiddlerscript.ephemeral.bpRequestURI")
 	public static var bpRequestURI:String = null;
 
@@ -606,122 +656,124 @@ class Handlers
 	static var gs_OverridenHost: String = null;
 	static var gs_OverrideHostWith: String = null;
 
-	// The OnExecAction function is called by either the QuickExec box in the Fiddler Classic window,
-	// or by the ExecAction.exe command line utility.
+		// The OnExecAction function is called by either the QuickExec box in the Fiddler Classic window,
+		// or by the ExecAction.exe command line utility.
 	static function OnExecAction(sParams: String[]): Boolean {
 
 		FiddlerObject.StatusText = "ExecAction: " + sParams[0];
 
 		var sAction = sParams[0].toLowerCase();
 		switch (sAction) {
-		case "bold":
-			if (sParams.Length<2) {uiBoldURI=null; FiddlerObject.StatusText="Bolding cleared"; return false;}
-			uiBoldURI = sParams[1]; FiddlerObject.StatusText="Bolding requests for " + uiBoldURI;
-			return true;
-		case "bp":
-			FiddlerObject.alert("bpu = breakpoint request for uri\nbpm = breakpoint request method\nbps=breakpoint response status\nbpafter = breakpoint response for URI");
-			return true;
-		case "bps":
-			if (sParams.Length<2) {bpStatus=-1; FiddlerObject.StatusText="Response Status breakpoint cleared"; return false;}
-			bpStatus = parseInt(sParams[1]); FiddlerObject.StatusText="Response status breakpoint for " + sParams[1];
-			return true;
-		case "bpv":
-		case "bpm":
-			if (sParams.Length<2) {bpMethod=null; FiddlerObject.StatusText="Request Method breakpoint cleared"; return false;}
-			bpMethod = sParams[1].toUpperCase(); FiddlerObject.StatusText="Request Method breakpoint for " + bpMethod;
-			return true;
-		case "bpu":
-			if (sParams.Length<2) {bpRequestURI=null; FiddlerObject.StatusText="RequestURI breakpoint cleared"; return false;}
-			bpRequestURI = sParams[1]; 
-			FiddlerObject.StatusText="RequestURI breakpoint for "+sParams[1];
-			return true;
-		case "bpa":
-		case "bpafter":
-			if (sParams.Length<2) {bpResponseURI=null; FiddlerObject.StatusText="ResponseURI breakpoint cleared"; return false;}
-			bpResponseURI = sParams[1]; 
-			FiddlerObject.StatusText="ResponseURI breakpoint for "+sParams[1];
-			return true;
-		case "overridehost":
-			if (sParams.Length<3) {gs_OverridenHost=null; FiddlerObject.StatusText="Host Override cleared"; return false;}
-			gs_OverridenHost = sParams[1].toLowerCase();
-			gs_OverrideHostWith = sParams[2];
-			FiddlerObject.StatusText="Connecting to [" + gs_OverrideHostWith + "] for requests to [" + gs_OverridenHost + "]";
-			return true;
-		case "urlreplace":
-			if (sParams.Length<3) {gs_ReplaceToken=null; FiddlerObject.StatusText="URL Replacement cleared"; return false;}
-			gs_ReplaceToken = sParams[1];
-			gs_ReplaceTokenWith = sParams[2].Replace(" ", "%20");  // Simple helper
-			FiddlerObject.StatusText="Replacing [" + gs_ReplaceToken + "] in URIs with [" + gs_ReplaceTokenWith + "]";
-			return true;
-		case "allbut":
-		case "keeponly":
-			if (sParams.Length<2) { FiddlerObject.StatusText="Please specify Content-Type to retain during wipe."; return false;}
-			UI.actSelectSessionsWithResponseHeaderValue("Content-Type", sParams[1]);
-			UI.actRemoveUnselectedSessions();
-			UI.lvSessions.SelectedItems.Clear();
-			FiddlerObject.StatusText="Removed all but Content-Type: " + sParams[1];
-			return true;
-		case "stop":
-			UI.actDetachProxy();
-			return true;
-		case "start":
-			UI.actAttachProxy();
-			return true;
-		case "cls":
-		case "clear":
-			UI.actRemoveAllSessions();
-			return true;
-		case "g":
-		case "go":
-			UI.actResumeAllSessions();
-			return true;
-		case "goto":
-			if (sParams.Length != 2) return false;
-			Utilities.LaunchHyperlink("http://www.google.com/search?hl=en&btnI=I%27m+Feeling+Lucky&q=" + Utilities.UrlEncode(sParams[1]));
-			return true;
-		case "help":
-			Utilities.LaunchHyperlink("http://fiddler2.com/r/?quickexec");
-			return true;
-		case "hide":
-			UI.actMinimizeToTray();
-			return true;
-		case "log":
-			FiddlerApplication.Log.LogString((sParams.Length<2) ? "User couldn't think of anything to say..." : sParams[1]);
-			return true;
-		case "nuke":
-			UI.actClearWinINETCache();
-			UI.actClearWinINETCookies(); 
-			return true;
-		case "screenshot":
-			UI.actCaptureScreenshot(false);
-			return true;
-		case "show":
-			UI.actRestoreWindow();
-			return true;
-		case "tail":
-			if (sParams.Length<2) { FiddlerObject.StatusText="Please specify # of sessions to trim the session list to."; return false;}
-			UI.TrimSessionList(int.Parse(sParams[1]));
-			return true;
-		case "quit":
-			UI.actExit();
-			return true;
-		case "dump":
-			UI.actSelectAll();
-			UI.actSaveSessionsToZip(CONFIG.GetPath("Captures") + "dump.saz");
-			UI.actRemoveAllSessions();
-			FiddlerObject.StatusText = "Dumped all sessions to " + CONFIG.GetPath("Captures") + "dump.saz";
-			return true;
-
-		default:
-			if (sAction.StartsWith("http") || sAction.StartsWith("www.")) {
-				System.Diagnostics.Process.Start(sParams[0]);
+			case "bold":
+				if (sParams.Length<2) {uiBoldURI=null; FiddlerObject.StatusText="Bolding cleared"; return false;}
+				uiBoldURI = sParams[1]; FiddlerObject.StatusText="Bolding requests for " + uiBoldURI;
 				return true;
-			}
-			else
-			{
-				FiddlerObject.StatusText = "Requested ExecAction: '" + sAction + "' not found. Type HELP to learn more.";
-				return false;
-			}
+			case "bp":
+				FiddlerObject.alert("bpu = breakpoint request for uri\nbpm = breakpoint request method\nbps=breakpoint response status\nbpafter = breakpoint response for URI");
+				return true;
+			case "bps":
+				if (sParams.Length<2) {bpStatus=-1; FiddlerObject.StatusText="Response Status breakpoint cleared"; return false;}
+				bpStatus = parseInt(sParams[1]); FiddlerObject.StatusText="Response status breakpoint for " + sParams[1];
+				return true;
+			case "bpv":
+			case "bpm":
+				if (sParams.Length<2) {bpMethod=null; FiddlerObject.StatusText="Request Method breakpoint cleared"; return false;}
+				bpMethod = sParams[1].toUpperCase(); FiddlerObject.StatusText="Request Method breakpoint for " + bpMethod;
+				return true;
+			case "bpu":
+				if (sParams.Length<2) {bpRequestURI=null; FiddlerObject.StatusText="RequestURI breakpoint cleared"; return false;}
+				bpRequestURI = sParams[1]; 
+				FiddlerObject.StatusText="RequestURI breakpoint for "+sParams[1];
+				return true;
+			case "bpa":
+			case "bpafter":
+				if (sParams.Length<2) {bpResponseURI=null; FiddlerObject.StatusText="ResponseURI breakpoint cleared"; return false;}
+				bpResponseURI = sParams[1]; 
+				FiddlerObject.StatusText="ResponseURI breakpoint for "+sParams[1];
+				return true;
+			case "overridehost":
+				if (sParams.Length<3) {gs_OverridenHost=null; FiddlerObject.StatusText="Host Override cleared"; return false;}
+				gs_OverridenHost = sParams[1].toLowerCase();
+				gs_OverrideHostWith = sParams[2];
+				FiddlerObject.StatusText="Connecting to [" + gs_OverrideHostWith + "] for requests to [" + gs_OverridenHost + "]";
+				return true;
+			case "urlreplace":
+				if (sParams.Length<3) {gs_ReplaceToken=null; FiddlerObject.StatusText="URL Replacement cleared"; return false;}
+				gs_ReplaceToken = sParams[1];
+				gs_ReplaceTokenWith = sParams[2].Replace(" ", "%20");  // Simple helper
+				FiddlerObject.StatusText="Replacing [" + gs_ReplaceToken + "] in URIs with [" + gs_ReplaceTokenWith + "]";
+				return true;
+			case "allbut":
+			case "keeponly":
+				if (sParams.Length<2) { FiddlerObject.StatusText="Please specify Content-Type to retain during wipe."; return false;}
+				UI.actSelectSessionsWithResponseHeaderValue("Content-Type", sParams[1]);
+				UI.actRemoveUnselectedSessions();
+				UI.lvSessions.SelectedItems.Clear();
+				FiddlerObject.StatusText="Removed all but Content-Type: " + sParams[1];
+				return true;
+			case "stop":
+				UI.actDetachProxy();
+				return true;
+			case "start":
+				UI.actAttachProxy();
+				return true;
+			case "cls":
+			case "clear":
+				UI.actRemoveAllSessions();
+				return true;
+			case "g":
+			case "go":
+				UI.actResumeAllSessions();
+				return true;
+			case "goto":
+				if (sParams.Length != 2) return false;
+				Utilities.LaunchHyperlink("http://www.google.com/search?hl=en&btnI=I%27m+Feeling+Lucky&q=" + Utilities.UrlEncode(sParams[1]));
+				return true;
+			case "help":
+				Utilities.LaunchHyperlink("http://fiddler2.com/r/?quickexec");
+				return true;
+			case "hide":
+				UI.actMinimizeToTray();
+				return true;
+			case "log":
+				FiddlerApplication.Log.LogString((sParams.Length<2) ? "User couldn't think of anything to say..." : sParams[1]);
+				return true;
+			case "nuke":
+				UI.actClearWinINETCache();
+				UI.actClearWinINETCookies(); 
+				return true;
+			case "screenshot":
+				UI.actCaptureScreenshot(false);
+				return true;
+			case "show":
+				UI.actRestoreWindow();
+				return true;
+			case "tail":
+				if (sParams.Length<2) { FiddlerObject.StatusText="Please specify # of sessions to trim the session list to."; return false;}
+				UI.TrimSessionList(int.Parse(sParams[1]));
+				return true;
+			case "quit":
+				UI.actExit();
+				return true;
+			case "dump":
+				UI.actSelectAll();
+				UI.actSaveSessionsToZip(CONFIG.GetPath("Captures") + "dump.saz");
+				UI.actRemoveAllSessions();
+				FiddlerObject.StatusText = "Dumped all sessions to " + CONFIG.GetPath("Captures") + "dump.saz";
+				return true;
+			case "levelup":
+				CharLevelUp();
+				return true;
+			default:
+				if (sAction.StartsWith("http") || sAction.StartsWith("www.")) {
+					System.Diagnostics.Process.Start(sParams[0]);
+					return true;
+				}
+				else
+				{
+					FiddlerObject.StatusText = "Requested ExecAction: '" + sAction + "' not found. Type HELP to learn more.";
+					return false;
+				}
 		}
 	}
 }
