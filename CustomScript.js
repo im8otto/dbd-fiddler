@@ -1,15 +1,26 @@
 import System;
 import System.Windows.Forms;
 import Fiddler;
-var Banner = true;						//CHANGE true TO false TO USE BANNERS UNLOCKED WITH MARKET
-var BloodwebNoPerks = false;			//CHANGE false TO true TO DISABLE BLOODWEBNOPERKS [REMEMBER TO DISABLE BLOOWEB ABOVE] (Items, Addon, Offerings Unlocking)
-var Bloodweb_v6 = true;					//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
-var CustomPrestige = true;				//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
-var MarketUpdaterPath = "C:\\Rules\\";	//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
-var Market_v3 = true;					//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
-var Quest = true;						//CHANGE true TO false TO DISABLE CHALLANGES HELPER
-var QuestBlock = false;					//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
+const Banner = true;						//CHANGE true TO false TO USE BANNERS UNLOCKED WITH MARKET
+const BloodwebNoPerks = false;				//CHANGE false TO true TO DISABLE BLOODWEBNOPERKS [REMEMBER TO DISABLE BLOOWEB BELOW] (Items, Addon, Offerings Unlocking)
+const Bloodweb_v6 = true;					//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
+const CustomPrestige = true;				//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
+var MarketUpdaterPath = "C:\\Rules\\";		//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
+const Market_v3 = true;						//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
+const Quest = true;							//CHANGE true TO false TO DISABLE CHALLANGES HELPER
+const QuestBlock = false;					//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
+const PascalCase = false;					//CHANGE false TO true TO SWITCH TO OSSIEK FILE TYPE
 if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";  //DO NOT TOUCH THIS LINE OF CODE
+
+//CONSTANT TO SWITCH FROM SLEEPYLIA FILE TYPE TO OSSIE (DON'T TOUCH)
+const jList = PascalCase ? "list" : "List";
+const jBloodWebData = PascalCase ? "bloodWebData" : "BloodWebData";
+const jCharacterName = PascalCase ? "characterName" : "CharacterName";
+const jPrestigeLevel = PascalCase ? "prestigeLevel" : "PrestigeLevel";
+const jLegacyPrestigeLevel = PascalCase ? "legacyPrestigeLevel" : "LegacyPrestigeLevel";
+const jCharacterItems = PascalCase ? "characterItems" : "CharacterItems";
+const jData = PascalCase ? "data" : "Data";
+const jInventory = PascalCase ? "inventory" : "Inventory";
 
 // INTRODUCTION
 //
@@ -28,15 +39,15 @@ if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";  //DO NOT TOUCH TH
 // sample rules file.
 
 // The best way to edit this file is to install the FiddlerScript Editor, part of
-// the free SyntaxEditing addons. Get it here: http://fiddler2.com/r/?SYNTAXVIEWINSTALL
+// the free SyntaxEditing addons. Get it here: https://fiddler2.com/r/?SYNTAXVIEWINSTALL
 
 // GLOBALIZATION NOTE: Save this file using UTF-8 Encoding.
 
 // JScript.NET Reference
-// http://fiddler2.com/r/?msdnjsnet
+// https://fiddler2.com/r/?msdnjsnet
 //
 // FiddlerScript Reference
-// http://fiddler2.com/r/?fiddlerscriptcookbook
+// https://fiddler2.com/r/?fiddlerscriptcookbook
 
 class Handlers
 {
@@ -48,7 +59,7 @@ class Handlers
 	// *****************
 
 	// The following snippet demonstrates a custom-bound column for the Web Sessions list.
-	// See http://fiddler2.com/r/?fiddlercolumns for more info
+	// See https://fiddler2.com/r/?fiddlercolumns for more info
 	/*
 	public static BindUIColumn("Method", 60)
 	function FillMethodColumn(oS: Session): String {
@@ -77,8 +88,8 @@ class Handlers
 	// You can create a custom menu like so:
 	/*
 	QuickLinkMenu("&Links") 
-	QuickLinkItem("IE GeoLoc TestDrive", "http://ie.microsoft.com/testdrive/HTML5/Geolocation/Default.html")
-	QuickLinkItem("FiddlerCore", "http://fiddler2.com/fiddlercore")
+	QuickLinkItem("IE GeoLoc TestDrive", "https://ie.microsof*****m/testdrive/HTML5/Geolocation/Default.html")
+	QuickLinkItem("FiddlerCore", "https://fiddler2.com/fiddlercore")
 	public static function DoLinksMenu(sText: String, sAction: String)
 	{
 		Utilities.LaunchHyperlink(sAction);
@@ -134,7 +145,7 @@ class Handlers
 	var m_AutoAuth: boolean = false;
 
 		// Cause Fiddler Classic to override the User-Agent header with one of the defined values
-		// The page http://browserscope2.org/browse?category=selectors&ua=Mobile%20Safari is a good place to find updated versions of these
+		// The page https://browserscope2.org/browse?category=selectors&ua=Mobile%20Safari is a good place to find updated versions of these
 	RulesString("&User-Agents", true) 
 	BindPref("fiddlerscript.ephemeral.UserAgentString")
 	RulesStringValue(0,"Netscape &3", "Mozilla/3.0 (Win95; I)")
@@ -160,7 +171,7 @@ class Handlers
 	RulesStringValue(20,"Chrome (Win)", "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.48 Safari/537.36")
 	RulesStringValue(21,"Chrome (Android)", "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36")
 	RulesStringValue(22,"ChromeBook", "Mozilla/5.0 (X11; CrOS x86_64 6680.52.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.74 Safari/537.36")
-	RulesStringValue(23,"GoogleBot Crawler", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")
+	RulesStringValue(23,"GoogleBot Crawler", "Mozilla/5.0 (compatible; Googlebot/2.1; +https://www.google.com/bot.html)")
 	RulesStringValue(24,"Kindle Fire (Silk)", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us; Silk/1.0.22.79_10013310) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16 Silk-Accelerated=true")
 	RulesStringValue(25,"&Custom...", "%CUSTOM%")
 	public static var sUA: String = null;
@@ -326,7 +337,7 @@ class Handlers
 		// work, since the body hasn't yet been read, but sometimes it may be useful.
 		//
 		// For instance, see 
-		// http://blogs.msdn.com/b/fiddler/archive/2011/11/05/http-expect-continue-delays-transmitting-post-bodies-by-up-to-350-milliseconds.aspx
+		// https://blogs.msdn.com/b/fiddler/archive/2011/11/05/http-expect-continue-delays-transmitting-post-bodies-by-up-to-350-milliseconds.aspx
 		// for one useful thing you can do with this handler.
 		//
 		// Note: oSession.requestBodyBytes is not available within this function!
@@ -395,7 +406,7 @@ class Handlers
 				var bloodwebJson = Fiddler.WebFormats.JSON.JsonDecode(bloodwebString).JSONObject;
 				oSession.utilDecodeResponse();
 				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(oSession.GetResponseBodyAsString()).JSONObject;
-				oJsonResponse["characterItems"].AddRange(bloodwebJson["CharacterItems"]);
+				oJsonResponse["characterItems"].AddRange(bloodwebJson[jCharacterItems]);
 				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJsonResponse);
 				oSession.utilSetResponseBody(oString);
 			}
@@ -431,12 +442,12 @@ class Handlers
 				}
 				if (oSession.uriContains("api/v1/dbd-character-data/get-all")){
 					if (customStatus){
-						for(var i=0;i<getallJson["List"].Count;i++){
-							getallJson["List"][i]["BloodWebData"].Clear();
-							getallJson["List"][i]["BloodWebData"] = bloodWebData;
+						for(var i=0;i<getallJson[jList].Count;i++){
+							getallJson[jList][i][jBloodWebData].Clear();
+							getallJson[jList][i][jBloodWebData] = bloodWebData;
 							var j = 0;
-							while(j<customDataJson["List"].Count && customDataJson["List"][j]["CharacterName"].ToLower() != getallJson["List"][i]["CharacterName"].ToLower()) j++;
-							if (customDataJson["List"][j]["CharacterName"].ToLower() == getallJson["List"][i]["CharacterName"].ToLower()) getallJson["List"][i]["PrestigeLevel"] = customDataJson["List"][j]["PrestigeLevel"];
+							while(j<customDataJson[jList].Count && customDataJson[jList][j][jCharacterName].ToLower() != getallJson[jList][i][jCharacterName].ToLower()) j++;
+							if (customDataJson[jList][j][jCharacterName].ToLower() == getallJson[jList][i][jCharacterName].ToLower()) getallJson[jList][i][jPrestigeLevel] = customDataJson[jList][j][jPrestigeLevel];
 						}
 						getallString = Fiddler.WebFormats.JSON.JsonEncode(getallJson);
 					}
@@ -450,17 +461,17 @@ class Handlers
 				var jsonResponse = oSession.GetResponseBodyAsString();
 				var oJsonResponse = Fiddler.WebFormats.JSON.JsonDecode(jsonResponse).JSONObject;
 				var characterSelected = oJsonRequest["characterName"];
-				for(var i=0;i<getallJson["List"].Count;i++){
-					if(getallJson["List"][i]["CharacterName"].ToLower() == characterSelected.ToLower()){
+				for(var i=0;i<getallJson[jList].Count;i++){
+					if(getallJson[jList][i][jCharacterName].ToLower() == characterSelected.ToLower()){
 						oJsonResponse["bloodWebLevel"] = 50;
-						oJsonResponse["prestigeLevel"] = getallJson["List"][i]["PrestigeLevel"];
-						oJsonResponse["legacyPrestigeLevel"] = getallJson["List"][i]["LegacyPrestigeLevel"];
+						oJsonResponse["prestigeLevel"] = getallJson[jList][i][jPrestigeLevel];
+						oJsonResponse["legacyPrestigeLevel"] = getallJson[jList][i][jLegacyPrestigeLevel];
 						if (customStatus){
 							var j = 0;
-							while(j<customDataJson["List"].Count && customDataJson["List"][j]["CharacterName"].ToLower() != characterSelected.ToLower()) j++;
-							if (customDataJson["List"][j]["CharacterName"].ToLower() == characterSelected.ToLower()) oJsonResponse["prestigeLevel"] = customDataJson["List"][j]["PrestigeLevel"];
+							while(j<customDataJson[jList].Count && customDataJson[jList][j][jCharacterName].ToLower() != characterSelected.ToLower()) j++;
+							if (customDataJson[jList][j][jCharacterName].ToLower() == characterSelected.ToLower()) oJsonResponse["prestigeLevel"] = customDataJson[jList][j][jPrestigeLevel];
 						}
-						oJsonResponse["characterItems"].AddRange(getallJson["List"][i]["CharacterItems"]);
+						oJsonResponse["characterItems"].AddRange(getallJson[jList][i][jCharacterItems]);
 						break;
 					}
 				}
@@ -484,8 +495,8 @@ class Handlers
 				oSession.utilDecodeResponse();
 				var jsonString = oSession.GetResponseBodyAsString();
 				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
-				for(var i = 0; i < marketJson["Data"]["Inventory"].Count ; i++){
-					oJson["data"]["inventory"].Add(marketJson["Data"]["Inventory"][i]);
+				for(var i = 0; i < marketJson[jData][jInventory].Count ; i++){
+					oJson["data"]["inventory"].Add(marketJson[jData][jInventory][i]);
 				}
 				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJson);
 				oSession.utilSetResponseBody(oString);
@@ -727,10 +738,10 @@ class Handlers
 				return true;
 			case "goto":
 				if (sParams.Length != 2) return false;
-				Utilities.LaunchHyperlink("http://www.google.com/search?hl=en&btnI=I%27m+Feeling+Lucky&q=" + Utilities.UrlEncode(sParams[1]));
+				Utilities.LaunchHyperlink("https://www.google.com/search?hl=en&btnI=I%27m+Feeling+Lucky&q=" + Utilities.UrlEncode(sParams[1]));
 				return true;
 			case "help":
-				Utilities.LaunchHyperlink("http://fiddler2.com/r/?quickexec");
+				Utilities.LaunchHyperlink("https://fiddler2.com/r/?quickexec");
 				return true;
 			case "hide":
 				UI.actMinimizeToTray();
