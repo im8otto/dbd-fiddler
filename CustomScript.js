@@ -526,6 +526,8 @@ class Handlers
 				for(var i=0;i<questEvents.Count;i++){
 					var repetition = questEvents[i]["repetition"];
 					repetition *= neededProgression;
+					if(questEvents[i]["operation"] == "<") repetition = questEvents[i]["repetition"] - 1;
+					else if(questEvents[i]["operation"] == ">") repetition = questEvents[i]["repetition"] + 1;
 					var questEventId = questEvents[i]["questEventId"];
 					var parameters = questEvents[i]["parameters"];
 					if(parameters != undefined) requestBody += '{"parameters":"'+parameters+'","questEventId":"'+questEventId+'","repetition":'+repetition+'}';
