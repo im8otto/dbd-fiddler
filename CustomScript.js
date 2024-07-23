@@ -538,26 +538,26 @@ class Handlers
 			catch(e){FiddlerObject.log("Error unlocking challenge");}
 		}
 			
-		if (!QuestBlock && Quest && oSession.uriContains("api/v1/auth/v2/publicKey")){
-			try{
-				oSession.utilDecodeRequest();
-				var headers = oSession.oRequest.headers;
-				var headerArray = new System.Collections.ArrayList();
-				var enumerator = headers.GetEnumerator();
-				while (enumerator.MoveNext()) {
-					var header = enumerator.Current;
-					if (header.Name == "Content-Length") continue;
-					var headerObject = new System.Collections.Hashtable();
-					headerObject.Add("name", header.Name);
-					headerObject.Add("value", header.Value);
-					headerArray.Add(headerObject);
-				}
-				System.IO.File.WriteAllText(MarketUpdaterPath+"Headers.json", Fiddler.WebFormats.JSON.JsonEncode(headerArray));
-			}
-			catch(e){
-				FiddlerObject.log(e);
-			}
-		}
+		if (oSession.uriContains("api/v1/auth/v2/publicKey")){
+            try{
+                oSession.utilDecodeRequest();
+                var headers = oSession.oRequest.headers;
+                var headerArray = new System.Collections.ArrayList();
+                var enumerator = headers.GetEnumerator();
+                while (enumerator.MoveNext()) {
+                    var header = enumerator.Current;
+                    if (header.Name == "Content-Length") continue;
+                    var headerObject = new System.Collections.Hashtable();
+                    headerObject.Add("name", header.Name);
+                    headerObject.Add("value", header.Value);
+                    headerArray.Add(headerObject);
+                }
+                System.IO.File.WriteAllText(MarketUpdaterPath+"Headers.json", Fiddler.WebFormats.JSON.JsonEncode(headerArray));
+            }
+            catch(e){
+                FiddlerObject.log(e);
+            }
+        }
 
 		if (Banner && oSession.uriContains("/api/v1/dbd-player-card/set")) {
 			try {
