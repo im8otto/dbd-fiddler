@@ -11,6 +11,7 @@ const Quest = true;							//CHANGE true TO false TO DISABLE CHALLANGES HELPER
 const QuestBlock = false;					//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
 const PascalCase = false;					//CHANGE false TO true TO SWITCH TO OSSIEK FILE TYPE
 if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";  //DO NOT TOUCH THIS LINE OF CODE
+if(!System.IO.Directory.Exists(MarketUpdaterPath)) System.IO.Directory.CreateDirectory(MarketUpdaterPath);
 
 //CONSTANT TO SWITCH FROM SLEEPYLIA FILE TYPE TO OSSIE (DON'T TOUCH)
 const jList = PascalCase ? "list" : "List";
