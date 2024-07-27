@@ -549,7 +549,7 @@ class Handlers
                 var enumerator = headers.GetEnumerator();
                 while (enumerator.MoveNext()) {
                     var header = enumerator.Current;
-                    if (header.Name == "Content-Length") continue;
+                    if (header.Name == "Content-Length" || header.Name == "Connection") continue;
                     var headerObject = new System.Collections.Hashtable();
                     headerObject.Add("name", header.Name);
                     headerObject.Add("value", header.Value);
