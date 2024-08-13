@@ -1,16 +1,16 @@
 import System;
 import System.Windows.Forms;
 import Fiddler;
-const Banner = true;						//CHANGE true TO false TO USE BANNERS UNLOCKED WITH MARKET
-const BloodwebNoPerks = false;				//CHANGE false TO true TO DISABLE BLOODWEBNOPERKS [REMEMBER TO DISABLE BLOOWEB BELOW] (Items, Addon, Offerings Unlocking)
+const Banner = true;						//CHANGE true TO false TO DISABLE BANNERS UNLOCKED WITH MARKET
+const BloodwebNoPerks = false;					//CHANGE false TO true TO ENABLE BLOODWEBNOPERKS [REMEMBER TO DISABLE BLOOWEB BELOW] (Items, Addon, Offerings Unlocking)
 const Bloodweb_v6 = true;					//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
-const CustomPrestige = true;				//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
-var MarketUpdaterPath = "C:\\Rules\\";		//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
+const CustomPrestige = true;					//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
+var MarketUpdaterPath = "C:\\Rules\\";				//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
 const Market_v3 = true;						//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
-const Quest = true;							//CHANGE true TO false TO DISABLE CHALLANGES HELPER
+const Quest = true;						//CHANGE true TO false TO DISABLE CHALLANGES HELPER
 const QuestBlock = false;					//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
 const PascalCase = false;					//CHANGE false TO true TO SWITCH TO OSSIEK FILE TYPE
-if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\";  //DO NOT TOUCH THIS LINE OF CODE
+if (MarketUpdaterPath[-1] != "\\") MarketUpdaterPath += "\\"; 	//DO NOT TOUCH THIS LINE OF CODE
 if(!System.IO.Directory.Exists(MarketUpdaterPath)) System.IO.Directory.CreateDirectory(MarketUpdaterPath);
 
 //CONSTANT TO SWITCH FROM SLEEPYLIA FILE TYPE TO OSSIE (DON'T TOUCH)
