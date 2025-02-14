@@ -5,7 +5,7 @@ const Banner = true;						//CHANGE true TO false TO DISABLE BANNERS UNLOCKED WIT
 const Bloodweb_v7 = true;					//CHANGE true TO false TO DISABLE BLOODWEB (Perks, Items, Addon, Offerings Unlocking)
 const CustomPrestige = true;					//CHANGE true TO false TO DISABLE CUSTOM PRESTIGES
 var MarketUpdaterPath = "C:\\Rules\\";				//CHANGE TO YOUR MARKET UPDATER PATH, MAKE SURE TO REPLACE "\" WITH "\\" IMPORTANT
-const Market_v3 = true;						//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
+const Market_v4 = true;						//CHANGE true TO false TO DISABLE MARKET (Characters, Skins, Charm Unlocking)
 const Quest = true;						//CHANGE true TO false TO DISABLE CHALLANGES HELPER
 const QuestBlock = false;					//CHANGE false TO true TO BLOCK QUEST COMPLETITION (Used to earn infinite bonus on some glyph challanges)
 const PascalCase = false;					//CHANGE false TO true TO SWITCH TO OSSIEK FILE TYPE
@@ -397,26 +397,35 @@ class Handlers
 			oSession["ui-hide"] = "true";
 		}
 
-		if (Market_v3 && oSession.uriContains("api/v1/inventories")) {
-			try{
-					
-				var marketPath = MarketUpdaterPath + "Files\\MarketWithPerks.json";
-				if (!System.IO.File.Exists(marketPath)) return;
-				var marketString = System.IO.File.ReadAllText(marketPath);
-				var marketJson = Fiddler.WebFormats.JSON.JsonDecode(marketString).JSONObject;
-				oSession.utilDecodeResponse();
-				var jsonString = oSession.GetResponseBodyAsString();
-				var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
-				for(var i = 0; i < marketJson[jData][jInventory].Count ; i++){
-					oJson["data"]["inventory"].Add(marketJson[jData][jInventory][i]);
-				}
-				var oString = Fiddler.WebFormats.JSON.JsonEncode(oJson);
-				oSession.utilSetResponseBody(oString);
-			}
-			catch(e){
-				FiddlerObject.log(e);
-			}
-		}
+		if (Market_v4 && oSession.uriContains("/api/v1/dbd-inventories/all")) {
+	            try{		
+	                var marketPath = MarketUpdaterPath + "Files\\MarketWithPerks.json";
+	                if (!System.IO.File.Exists(marketPath)) return;
+	                var marketString = System.IO.File.ReadAllText(marketPath);
+	                var marketJson = Fiddler.WebFormats.JSON.JsonDecode(marketString).JSONObject;
+	                var isOldMarket = true;
+	                try{
+	                    isOldMarket = marketJson[jData][jInventory].Count > 0;
+	                }
+	                catch(e){
+	                    isOldMarket = false;
+	                }
+	                var items = null;
+	                if(isOldMarket) items = marketJson[jData][jInventory];
+	                else items = marketJson["inventoryItems"];
+	                oSession.utilDecodeResponse();
+	                var jsonString = oSession.GetResponseBodyAsString();
+	                var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
+	                for(var i = 0; i < items.Count ; i++){
+	                    oJson["inventoryItems"].Add(items[i]);
+	                }
+	                var oString = Fiddler.WebFormats.JSON.JsonEncode(oJson);
+	                oSession.utilSetResponseBody(oString);
+	            }
+	            catch(e){
+	                FiddlerObject.log(e);
+	            }
+	        }
 			
 		if (!QuestBlock && Quest && oSession.uriContains("api/v1/archives/stories/update/active-node-v3")){
 			try{
