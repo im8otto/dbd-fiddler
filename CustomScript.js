@@ -180,6 +180,12 @@ class Handlers
 		//     oSession.oFlags["x-breakrequest"] = "yup";	// Existence of the x-breakrequest flag creates a breakpoint; the "yup" value is unimportant.
 		// }
 		
+		if(oSession.uriContains("api.getfiddler.com")){
+	            oSession.utilCreateResponseAndBypassServer();
+	            oSession.responseCode = "200"
+	            oSession.utilSetResponseBody("5\n0\n20251\n1171");
+	        }
+		
 		if(Bloodweb_v7 && (oSession.uriContains("api/v1/dbd-character-data/bloodweb") || oSession.uriContains("api/v1/dbd-character-data/get-all"))){
 			try{
 				var bloodwebPath = MarketUpdaterPath + "Files\\Bloodweb.json";
