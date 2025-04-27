@@ -261,17 +261,17 @@ static function OnBeforeRequest(oSession: Session) {
             var oJson = Fiddler.WebFormats.JSON.JsonDecode(jsonString).JSONObject;
             var check = false;
             for(var i=0;i<oJson["events"].Count;i++){
-                if(matchId == "" && oJson["events"][i]["data"]["match_id"] != null){
+                if(oJson["events"][i]["data"]["match_id"] != null){
                     matchId = oJson["events"][i]["data"]["match_id"];
                     FiddlerObject.log(matchId);
                 }
-                if(krakenMatchId == "" && oJson["events"][i]["data"]["kraken_match_id"] != null){
+                if(oJson["events"][i]["data"]["kraken_match_id"] != null){
                     krakenMatchId = oJson["events"][i]["data"]["kraken_match_id"];
                     FiddlerObject.log(krakenMatchId);
                 }
                 if(oJson["events"][i]["eventType"] == "matchmakinglobby" && oJson["events"][i]["data"]["lobby_result"] == "Success") check = true;    
             }
-            if (!check || matchId == "" || krakenMatchId == "") return;
+            if (!check || matchId === "" || krakenMatchId === "") return;
             else if (check && (matchId == "" || krakenMatchId == "")){
 				matchId = "";
 				krakenMatchId = "";
